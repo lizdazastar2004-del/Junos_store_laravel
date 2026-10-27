@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fce1ea"/>
+      <stop offset="100%" stop-color="#e8648c"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#4a2d7a" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <!-- Fondo Card Pastel -->
+  <rect width="500" height="500" fill="url(#bgGrad)"/>
+  
+  <!-- Patrón de Estrellitas y Destellos Kawaii -->
+  <circle cx="60" cy="70" r="8" fill="#ffffff" opacity="0.6"/>
+  <circle cx="430" cy="90" r="12" fill="#ffffff" opacity="0.5"/>
+  <circle cx="420" cy="400" r="9" fill="#ffffff" opacity="0.6"/>
+  <circle cx="80" cy="420" r="14" fill="#ffffff" opacity="0.5"/>
+  
+  <text x="70" y="160" font-size="28" fill="#ffffff" opacity="0.7">✨</text>
+  <text x="390" y="240" font-size="32" fill="#ffffff" opacity="0.7">🌸</text>
+  <text x="90" y="340" font-size="26" fill="#ffffff" opacity="0.6">⭐</text>
+
+  <!-- Tarjeta Central de Producto -->
+  <g filter="url(#shadow)">
+    <rect x="75" y="75" width="350" height="350" rx="40" fill="#ffffff" opacity="0.95"/>
+    <rect x="75" y="75" width="350" height="350" rx="40" fill="none" stroke="#eedcfc" stroke-width="4"/>
+  </g>
+
+  <!-- Badge Superior -->
+  <rect x="150" y="105" width="200" height="34" rx="17" fill="#f4eafc"/>
+  <text x="250" y="128" font-family="'Nunito', sans-serif" font-size="13" font-weight="800" fill="#7a4adc" text-anchor="middle" letter-spacing="1">Peluches Suaves</text>
+
+  <!-- Ícono Ilustrado Gigante -->
+  <text x="250" y="260" font-size="105" text-anchor="middle" dominant-baseline="middle">🧸</text>
+
+  <!-- Título del Producto y Brand -->
+  <text x="250" y="345" font-family="'Nunito', sans-serif" font-size="17" font-weight="900" fill="#352b43" text-anchor="middle">Juno's Store</text>
+  <text x="250" y="375" font-family="'Nunito', sans-serif" font-size="14" font-weight="700" fill="#88729f" text-anchor="middle">Colección Pastel Original</text>
+  
+  <!-- Mini Corazoncito Inferior -->
+  <circle cx="250" cy="400" r="5" fill="#f4a8bf"/>
+</svg>

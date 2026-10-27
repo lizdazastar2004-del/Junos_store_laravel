@@ -1,0 +1,286 @@
+/* ── Auth redesign ─────────────────────────────────────────── */
+.auth-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: min(960px, calc(100% - 3rem));
+    min-height: 540px;
+    max-width: none;
+    margin: 1.5rem auto 3rem;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(96, 69, 143, 0.2);
+}
+
+/* Panel izquierdo — formulario */
+.auth-form-panel {
+    background: #fff;
+    padding: 2.75rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-form-panel h1 {
+    width: min(100%, 360px);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #4f356f;
+    margin: 0 0 1.35rem;
+    text-align: center;
+}
+
+.auth-form-panel form,
+.auth-form-panel > .auth-or,
+.auth-form-panel > .btn-auth-secondary,
+.auth-form-panel > .auth-alert {
+    width: min(100%, 360px);
+}
+
+/* Inputs con icono */
+.auth-input-wrap {
+    position: relative;
+    margin-bottom: .7rem;
+}
+
+.auth-input-wrap .auth-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    color: #bba8cc;
+    pointer-events: none;
+}
+
+.auth-input-wrap input {
+    width: 100%;
+    border: 1.5px solid #d8cce8;
+    border-radius: 30px;
+    padding: 9px 38px 9px 36px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.82rem;
+    color: #5a4a6a;
+    background: #faf8ff;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.auth-input-wrap input:focus {
+    border-color: #9b84cc;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(155, 132, 204, 0.15);
+}
+
+.auth-input-wrap input::placeholder {
+    color: #c0adda;
+}
+
+/* Botón toggle contraseña */
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #bba8cc;
+    padding: 4px;
+    line-height: 1;
+}
+
+/* Link ¿Olvidaste? */
+.auth-forgot {
+    text-align: right;
+    margin: -0.25rem 0 1.25rem;
+    font-size: 0.82rem;
+    color: #9b84cc;
+    font-weight: 600;
+}
+
+.auth-forgot a {
+    color: #9b84cc;
+}
+
+.auth-forgot a:hover {
+    color: #7c5cbf;
+}
+
+/* Botones principales */
+.btn-auth-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #b66be8 0%, #8652ca 100%);
+    border: none;
+    border-radius: 999px;
+    padding: 10px 16px;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: .84rem;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(134,82,202,.25);
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+}
+
+.btn-auth-primary:hover {
+    background: linear-gradient(135deg, #a85cdb 0%, #7543b8 100%);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 9px 18px rgba(134,82,202,.35);
+}
+
+.btn-auth-secondary {
+    width: 100%;
+    background: linear-gradient(135deg, #ead8fb 0%, #c49bea 100%);
+    border: none;
+    border-radius: 999px;
+    padding: 9px 16px;
+    color: #59377c;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: .84rem;
+    cursor: pointer;
+    box-shadow: 0 5px 12px rgba(155,108,202,.16);
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 0.75rem;
+}
+
+.btn-auth-secondary:hover {
+    background: linear-gradient(135deg, #dfc5f6 0%, #b681de 100%);
+    color: #4d2f6e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(155,108,202,.25);
+}
+
+/* Separador "o" */
+.auth-or {
+    text-align: center;
+    color: #bba8cc;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+    position: relative;
+}
+
+/* Checkbox recordarme */
+.auth-remember {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #8a7a9a;
+    margin-bottom: 1.25rem;
+}
+
+.auth-remember input[type="checkbox"] {
+    accent-color: #9b84cc;
+    width: 15px;
+    height: 15px;
+}
+
+/* Panel derecho — decoración */
+.auth-decoration-panel {
+    background:
+        linear-gradient(160deg, rgba(216,200,247,.32), rgba(190,221,245,.25)),
+        url('/img/background.jpeg') center/cover no-repeat;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-decoration-panel h2 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #5c3d8f;
+    margin-bottom: 1.1rem;
+    line-height: 1.15;
+    position: relative;
+    z-index: 2;
+}
+
+.auth-decoration-panel .deco-mascot {
+    width: min(68%, 245px);
+    height: auto;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 8px 20px rgba(120, 80, 180, 0.4));
+}
+
+/* Gatitos de fondo translúcidos */
+.auth-decoration-panel .deco-bg-icon {
+    position: absolute;
+    opacity: 0.2;
+    z-index: 1;
+}
+
+.auth-decoration-panel .deco-bg-icon.top-right {
+    top: 18px;
+    right: 20px;
+    width: 70px;
+}
+
+.auth-decoration-panel .deco-bg-icon.bottom-left {
+    bottom: 20px;
+    left: 10px;
+    width: 55px;
+}
+
+/* Alertas dentro del panel de auth */
+.auth-alert {
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+
+.auth-alert-error {
+    background: #fde0ea;
+    color: #8b1a3a;
+}
+
+.auth-alert-success {
+    background: #d4f5e2;
+    color: #1a6640;
+}
+
+.auth-alert-warning {
+    background: #fff3b0;
+    color: #7a6000;
+}
+
+@media (max-width: 700px) {
+    .auth-container {
+        grid-template-columns: 1fr;
+        width: min(440px, calc(100% - 1.5rem));
+        min-height: 0;
+        margin: 1rem auto 2rem;
+        border-radius: 18px;
+    }
+    .auth-decoration-panel {
+        display: flex;
+        min-height: 260px;
+        order: -1;
+    }
+    .auth-decoration-panel h2 { font-size: 1.4rem; }
+    .auth-decoration-panel .deco-mascot { width: 145px; }
+    .auth-form-panel { padding: 2rem 1.25rem 2.25rem; }
+}
+
+

@@ -1,0 +1,131 @@
+body {
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 2rem;
+            background: #fff;
+        }
+        .invoice-box {
+            max-width: 800px;
+            margin: auto;
+            border: 1px solid #eee;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f0eaff;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-section span {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #5c3d8f;
+        }
+        .invoice-title {
+            text-align: right;
+        }
+        .invoice-title h1 {
+            margin: 0;
+            color: #5c3d8f;
+            font-size: 2rem;
+        }
+        .invoice-title span {
+            font-weight: 700;
+            color: #888;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+        .details-col h3 {
+            margin-top: 0;
+            color: #5c3d8f;
+            border-bottom: 1px dashed #dcd3f5;
+            padding-bottom: 6px;
+        }
+        .details-col p {
+            margin: 0.4rem 0;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+        .table-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2.5rem;
+        }
+        .table-items th {
+            background: #fcf9fe;
+            color: #5c3d8f;
+            font-weight: 800;
+            text-align: left;
+            padding: 10px 14px;
+            border-bottom: 2px solid #dcd3f5;
+        }
+        .table-items td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f2ecfb;
+            font-size: 0.95rem;
+        }
+        .summary-box {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .summary-table {
+            width: 300px;
+            font-size: 0.95rem;
+        }
+        .summary-table td {
+            padding: 6px 12px;
+        }
+        .summary-table tr.total-row td {
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: #5c3d8f;
+            border-top: 2px solid #5c3d8f;
+            padding-top: 10px;
+        }
+        .print-btn-container {
+            max-width: 800px;
+            margin: 1.5rem auto 0;
+            text-align: right;
+        }
+        .print-btn {
+            background: #5c3d8f;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 20px;
+            border: none;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .print-btn:hover {
+            background: #4a2e78;
+        }
+        @media print {
+            .print-btn-container {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+            .invoice-box {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+
+

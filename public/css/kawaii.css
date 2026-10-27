@@ -1,0 +1,913 @@
+/* ============================================================
+   kawaii.css — Estilos globales para Juno's Store
+   Paleta pastel | Tipografía Nunito | Laravel Migration
+   ============================================================ */
+
+/* ── Sistema visual compartido ───────────────────────────── */
+:root {
+    --lavanda: #ded5f5;
+    --lavanda-dark: #60458f;
+    --rosa-pastel: #f4a8bf;
+    --menta: #b8e5d1;
+    --amarillo: #f8d98b;
+    --lila: #f1edfb;
+    --blanco: #ffffff;
+    --texto: #352b43;
+    --texto-claro: #81768d;
+    --radio: 16px;
+    --sombra: 0 12px 30px rgba(79, 59, 110, 0.12);
+    --sombra-fuerte: 0 20px 48px rgba(79, 59, 110, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Nunito', 'Segoe UI', sans-serif;
+    background-color: #eee6fa;
+    background-image:
+        linear-gradient(rgba(250, 247, 255, .64), rgba(250, 247, 255, .64)),
+        url('/img/background.jpeg');
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    color: var(--texto);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+a { color: var(--lavanda-dark); transition: color .2s ease; text-decoration: none; }
+a:hover { color: #a64e73; }
+
+/* ══════════════════ HEADER ══════════════════ */
+.header-kawaii {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255,255,255,.9);
+    border-bottom: 1px solid rgba(96,69,143,.1);
+    box-shadow: 0 5px 22px rgba(79,59,110,.08);
+    backdrop-filter: blur(14px);
+}
+
+.header-inner,
+.footer-inner,
+.main-content {
+    width: min(1180px, calc(100% - 2rem));
+    margin-inline: auto;
+}
+
+.header-inner {
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+}
+
+.header-logo, .footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .65rem;
+    color: var(--lavanda-dark);
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.header-logo img, .footer-brand img { 
+    box-shadow: 0 4px 12px rgba(244,168,191,.35); 
+}
+
+.header-nav, .header-actions, .footer-nav { 
+    display: flex; 
+    align-items: center; 
+    gap: .45rem; 
+}
+
+.nav-link, .footer-nav a {
+    color: var(--texto-claro);
+    font-size: .9rem;
+    font-weight: 700;
+    text-decoration: none;
+    padding: .55rem .75rem;
+    border-radius: 10px;
+}
+
+.nav-link:hover, .footer-nav a:hover { 
+    color: var(--lavanda-dark); 
+    background: var(--lila); 
+}
+
+/* ══════════════════ CARRITO Y DROPDOWN EN HEADER ══════════════════ */
+.btn-icon-cart {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #f5edfc;
+    color: #7a4adc;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    text-decoration: none;
+    border: 1.5px solid #e2d2f7;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(122, 74, 220, 0.1);
+}
+.btn-icon-cart:hover {
+    background: #eedcfc;
+    color: #5d28bd;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(122, 74, 220, 0.2);
+}
+.cart-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: linear-gradient(135deg, #ff6b9d 0%, #e84393 100%);
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 800;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(232, 67, 147, 0.4);
+}
+
+/* User Dropdown */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+.btn-user-menu {
+    background: #f7f2fd;
+    color: #4a3468;
+    border: 1.5px solid #decbf5;
+    border-radius: 999px;
+    padding: 7px 16px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.btn-user-menu:hover {
+    background: #efe4fa;
+    color: #352052;
+    border-color: #cbaff0;
+}
+.user-dropdown .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #ffffff;
+    min-width: 200px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(96, 69, 143, 0.16);
+    border: 1.5px solid #ebdffc;
+    padding: 8px;
+    margin: 0;
+    list-style: none;
+    z-index: 1050;
+}
+.user-dropdown .dropdown-menu.show,
+.user-dropdown .dropdown-menu.open {
+    display: block !important;
+}
+.user-dropdown .dropdown-menu li {
+    margin: 2px 0;
+}
+.user-dropdown .dropdown-menu a,
+.user-dropdown .dropdown-menu button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #503d68;
+    text-decoration: none;
+    border-radius: 10px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.user-dropdown .dropdown-menu a:hover,
+.user-dropdown .dropdown-menu button:hover {
+    background: #f5eefc;
+    color: #7a4adc;
+}
+.user-dropdown .dropdown-divider {
+    height: 1px;
+    margin: 6px 0;
+    background: #f0e6fa;
+    border: 0;
+}
+
+/* Botón Directo de Salir en Header */
+.btn-logout-direct {
+    background: #fff0f5;
+    color: #d6336c;
+    border: 1.5px solid #fcc2d7;
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.btn-logout-direct:hover {
+    background: #ffdeeb;
+    color: #a61e4d;
+    transform: translateY(-1px);
+}
+
+
+/* ══════════════════ BOTONES ══════════════════ */
+.btn-primary, .btn-secondary, .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    border: 0;
+    border-radius: 999px;
+    padding: .65rem 1.15rem;
+    font-family: inherit;
+    font-size: .9rem;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.btn-primary { 
+    background: linear-gradient(135deg, #b66be8 0%, #8652ca 100%); 
+    color: #fff; 
+    box-shadow: 0 6px 14px rgba(134,82,202,.25); 
+}
+
+.btn-primary:hover { 
+    background: linear-gradient(135deg, #a85cdb 0%, #7543b8 100%); 
+    color: #fff; 
+    transform: translateY(-2px); 
+    box-shadow: 0 9px 18px rgba(134,82,202,.35); 
+}
+
+.btn-secondary { 
+    background: linear-gradient(135deg, #ead8fb 0%, #c49bea 100%); 
+    color: #59377c; 
+    border: 0; 
+    box-shadow: 0 5px 12px rgba(155,108,202,.16); 
+}
+
+.btn-secondary:hover { 
+    background: linear-gradient(135deg, #dfc5f6 0%, #b681de 100%); 
+    color: #4d2f6e; 
+    transform: translateY(-1px); 
+}
+
+.btn-sm { 
+    padding: .5rem .75rem; 
+    font-size: .8rem; 
+}
+
+/* ══════════════════ MAIN CONTENT ══════════════════ */
+.main-content { 
+    padding-block: 2.25rem 4rem; 
+    min-height: calc(100vh - 150px); 
+}
+
+.kawaii-bg {
+    background-color: #eee6fa;
+    background-image:
+        linear-gradient(rgba(250, 247, 255, .64), rgba(250, 247, 255, .64)),
+        url('/img/background.jpeg');
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+/* ══════════════════ FOOTER ══════════════════ */
+.footer-kawaii { 
+    background: #30263d; 
+    color: #eee7f4; 
+    padding: 1.25rem 0; 
+}
+
+.footer-inner { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    gap: 1rem; 
+    flex-wrap: wrap; 
+}
+
+.footer-brand { 
+    color: #fff; 
+}
+
+.footer-copy { 
+    margin: 0; 
+    color: #bdb1c8; 
+    font-size: .82rem; 
+}
+
+.footer-nav a { 
+    color: #d8ccdf; 
+}
+
+/* ══════════════════ USER DROPDOWN ══════════════════ */
+.user-dropdown { 
+    position: relative; 
+}
+
+.btn-user-menu { 
+    border: 0; 
+    border-radius: 10px; 
+    padding: .6rem .75rem; 
+    background: var(--lila); 
+    color: var(--lavanda-dark); 
+    font: inherit; 
+    font-weight: 800; 
+    cursor: pointer; 
+}
+
+.dropdown-menu { 
+    position: absolute; 
+    top: calc(100% + .5rem); 
+    right: 0; 
+    display: none; 
+    min-width: 180px; 
+    margin: 0; 
+    padding: .4rem; 
+    list-style: none; 
+    background: #fff; 
+    border: 1px solid #eee7f3; 
+    border-radius: 12px; 
+    box-shadow: var(--sombra-fuerte); 
+}
+
+.dropdown-menu.open { 
+    display: block; 
+}
+
+.dropdown-menu li a,
+.dropdown-menu li button { 
+    display: block; 
+    width: 100%;
+    padding: .6rem .7rem; 
+    border-radius: 8px; 
+    color: var(--texto); 
+    text-decoration: none; 
+    font-size: .88rem; 
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.dropdown-menu li a:hover,
+.dropdown-menu li button:hover { 
+    background: var(--lila); 
+    color: var(--lavanda-dark); 
+}
+
+.dropdown-divider { 
+    border-top: 1px solid #eee7f3; 
+    margin: .3rem 0; 
+}
+
+/* ══════════════════ RESPONSIVE ══════════════════ */
+@media (max-width: 760px) {
+    .header-inner { 
+        min-height: 64px; 
+        flex-wrap: nowrap; 
+        padding-block: .55rem; 
+        gap: .35rem; 
+    }
+    
+    .header-nav { 
+        flex: 1; 
+        justify-content: center; 
+        gap: 0; 
+    }
+    
+    .nav-link { 
+        padding-inline: .35rem; 
+        font-size: .76rem; 
+    }
+    
+    .header-actions { 
+        margin-left: auto; 
+    }
+    
+    .main-content { 
+        padding-top: 1.35rem; 
+    }
+    
+    .footer-inner { 
+        flex-direction: column; 
+        text-align: center; 
+    }
+}
+
+@media (max-width: 560px) {
+    .header-logo span { 
+        display: none; 
+    }
+    
+    .nav-link { 
+        padding-inline: .45rem; 
+        font-size: .82rem; 
+    }
+    
+    .header-actions .btn-primary { 
+        padding-inline: .65rem; 
+        font-size: .78rem; 
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { 
+        animation-duration: .01ms !important; 
+        animation-iteration-count: 1 !important; 
+        scroll-behavior: auto !important; 
+        transition-duration: .01ms !important; 
+    }
+}
+
+/* ══════════════════ COMPONENTES KAWAII GLOBALES ══════════════════ */
+
+/* Form Controls */
+.form-control, .form-select {
+    width: 100%;
+    border: 1.5px solid #d8cce8;
+    border-radius: 14px;
+    padding: 0.75rem 1.1rem;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.92rem;
+    color: #352b43;
+    background-color: #faf8ff;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #9b84cc;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(155, 132, 204, 0.2);
+    outline: none;
+    color: #352b43;
+}
+
+.form-control::placeholder {
+    color: #b7a6cb;
+}
+
+.form-control.is-invalid, .form-select.is-invalid {
+    border-color: #e57399;
+    box-shadow: 0 0 0 3px rgba(229, 115, 153, 0.18);
+}
+
+.invalid-feedback {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #c2335f;
+    margin-top: 0.35rem;
+    padding-left: 0.35rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #524068;
+    margin-bottom: 0.45rem;
+}
+
+.form-check-input {
+    accent-color: #9b84cc;
+    width: 1.15rem;
+    height: 1.15rem;
+    border: 1.5px solid #d8cce8;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: #8652ca;
+    border-color: #8652ca;
+}
+
+.form-check-label {
+    color: #695880;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Cards Kawaii */
+.card-kawaii {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(222, 213, 245, 0.6);
+    border-radius: 22px;
+    box-shadow: 0 14px 38px rgba(79, 59, 110, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-kawaii-header {
+    padding: 1.4rem 1.8rem;
+    background: linear-gradient(135deg, rgba(237, 230, 250, 0.7) 0%, rgba(247, 240, 253, 0.8) 100%);
+    border-bottom: 1px solid rgba(222, 213, 245, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-kawaii-header h2,
+.card-kawaii-header h3,
+.card-kawaii-header h4 {
+    margin: 0;
+    color: #4b306e;
+    font-weight: 800;
+}
+
+.card-kawaii-body {
+    padding: 2rem;
+}
+
+/* Badges Kawaii */
+.badge-kawaii {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 800;
+    font-size: 0.76rem;
+    padding: 5px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.badge-kawaii-purple {
+    background: #ebdffc;
+    color: #5c3d8f;
+    border: 1px solid rgba(155, 132, 204, 0.25);
+}
+
+.badge-kawaii-pink {
+    background: #fce1ea;
+    color: #a63e63;
+    border: 1px solid rgba(232, 100, 140, 0.25);
+}
+
+.badge-kawaii-mint {
+    background: #dcf2ea;
+    color: #266b53;
+    border: 1px solid rgba(75, 175, 144, 0.25);
+}
+
+.badge-kawaii-yellow {
+    background: #fdf0d9;
+    color: #8c5b16;
+    border: 1px solid rgba(239, 160, 51, 0.25);
+}
+
+.badge-kawaii-gray {
+    background: #f0edf5;
+    color: #695e77;
+    border: 1px solid rgba(187, 168, 204, 0.25);
+}
+
+/* Breadcrumbs Kawaii */
+.breadcrumb-kawaii {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.4rem;
+    margin-bottom: 2rem;
+    list-style: none;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(222, 213, 245, 0.6);
+    box-shadow: 0 4px 18px rgba(79, 59, 110, 0.06);
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.breadcrumb-kawaii a {
+    color: #7c5cbf;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumb-kawaii a:hover {
+    color: #532c8c;
+}
+
+.breadcrumb-kawaii .sep {
+    color: #bfaed6;
+    font-size: 0.75rem;
+}
+
+.breadcrumb-kawaii .current {
+    color: #524068;
+}
+
+/* Botones Kawaii Variantes */
+.btn-kawaii-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #b66be8 0%, #8652ca 100%);
+    color: #ffffff !important;
+    border: none;
+    border-radius: 999px;
+    padding: 0.85rem 1.75rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 8px 22px rgba(134, 82, 202, 0.32);
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn-kawaii-primary:hover {
+    background: linear-gradient(135deg, #a75adb 0%, #7542b8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(134, 82, 202, 0.42);
+}
+
+.btn-kawaii-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: #f1e8fc;
+    color: #5e3b8a !important;
+    border: 1.5px solid rgba(196, 155, 234, 0.4);
+    border-radius: 999px;
+    padding: 0.8rem 1.6rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.92rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-kawaii-secondary:hover {
+    background: #e3d2f7;
+    color: #482a6f !important;
+    transform: translateY(-2px);
+}
+
+.btn-kawaii-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: transparent;
+    color: #7c5cbf !important;
+    border: 2px solid #bba4df;
+    border-radius: 999px;
+    padding: 0.75rem 1.5rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-kawaii-outline:hover {
+    background: #7c5cbf;
+    color: #ffffff !important;
+    border-color: #7c5cbf;
+    transform: translateY(-2px);
+}
+
+/* Alertas Kawaii */
+.alert-kawaii {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.1rem 1.5rem;
+    border-radius: 18px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    margin: 1.5rem auto;
+    width: min(1180px, calc(100% - 2rem));
+    box-shadow: 0 8px 24px rgba(79, 59, 110, 0.08);
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.alert-kawaii-success {
+    background: #e5f7ee;
+    color: #216d50;
+    border: 1.5px solid rgba(75, 175, 144, 0.35);
+}
+
+.alert-kawaii-error, .alert-kawaii-danger {
+    background: #fde8ef;
+    color: #8c2542;
+    border: 1.5px solid rgba(232, 100, 140, 0.35);
+}
+
+.alert-kawaii-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* Paginación Kawaii */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.page-item .page-link {
+    border: none !important;
+    background: #ffffff;
+    color: #60458f;
+    border-radius: 12px !important;
+    padding: 8px 14px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(79, 59, 110, 0.08);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+}
+
+.page-item .page-link:hover {
+    background: #ded5f5;
+    color: #4b306e;
+    transform: translateY(-2px);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #b66be8 0%, #8652ca 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 16px rgba(134, 82, 202, 0.35);
+}
+
+.page-item.disabled .page-link {
+    background: #f5effc;
+    color: #b7a6cb;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+
+
+/* ══════════════════════════════════════════════════════════════════
+ * ÍCONO DEL CARRITO
+ * ══════════════════════════════════════════════════════════════════ */
+
+.btn-icon-cart {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--lavanda) 0%, var(--rosa) 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(123, 92, 191, 0.2);
+  margin-right: 0.75rem;
+}
+
+.btn-icon-cart:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(123, 92, 191, 0.35);
+  color: white;
+}
+
+.btn-icon-cart:active {
+  transform: translateY(0);
+}
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--rosa-oscuro);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+ * TABLA KAWAII (para carrito)
+ * ══════════════════════════════════════════════════════════════════ */
+
+.table-kawaii {
+  width: 100%;
+  background: white;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  overflow: hidden;
+  border-collapse: collapse;
+}
+
+.table-kawaii thead {
+  background: linear-gradient(135deg, var(--lavanda-claro) 0%, var(--lila) 100%);
+}
+
+.table-kawaii thead th {
+  padding: 1rem;
+  font-weight: 800;
+  color: var(--lavanda-dark);
+  text-align: left;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table-kawaii tbody tr {
+  border-bottom: 1px solid var(--lila);
+  transition: background-color 0.2s ease;
+}
+
+.table-kawaii tbody tr:hover {
+  background-color: var(--lavanda-claro);
+}
+
+.table-kawaii tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table-kawaii tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.table-kawaii .btn-danger {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table-kawaii .btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+}
+
+.table-kawaii .btn-sm {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+}

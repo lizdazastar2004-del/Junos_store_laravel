@@ -1,0 +1,217 @@
+/* Reutiliza los estilos de login — se incluyen aquí por si la vista se carga sola */
+.auth-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 64px);
+    max-width: 960px;
+    margin: 2.5rem auto;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(155, 132, 204, 0.35);
+}
+
+.auth-form-panel {
+    background: #fff;
+    padding: 2.5rem 2.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.auth-form-panel h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #7c5cbf;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.auth-input-wrap {
+    position: relative;
+    margin-bottom: 0.85rem;
+}
+
+.auth-input-wrap .auth-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    color: #bba8cc;
+    pointer-events: none;
+}
+
+.auth-input-wrap input {
+    width: 100%;
+    border: 1.5px solid #d8cce8;
+    border-radius: 30px;
+    padding: 11px 42px 11px 38px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    color: #5a4a6a;
+    background: #faf8ff;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.auth-input-wrap input:focus {
+    border-color: #9b84cc;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(155, 132, 204, 0.15);
+}
+
+.auth-input-wrap input::placeholder {
+    color: #c0adda;
+}
+
+.auth-input-wrap input.input-error {
+    border-color: #c0392b;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #bba8cc;
+    padding: 4px;
+    line-height: 1;
+}
+
+.field-error {
+    color: #c0392b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 2px 0 6px 12px;
+    display: block;
+}
+
+.btn-auth-primary {
+    width: 100%;
+    background: #9b84cc;
+    border: none;
+    border-radius: 30px;
+    padding: 12px;
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 0.5rem;
+}
+
+.btn-auth-primary:hover {
+    background: #7c5cbf;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.auth-login-link {
+    text-align: center;
+    margin-top: 1.25rem;
+    font-size: 0.88rem;
+    color: #8a7a9a;
+    font-weight: 600;
+}
+
+.auth-login-link a {
+    color: #9b84cc;
+    font-weight: 700;
+}
+
+.auth-login-link a:hover {
+    color: #7c5cbf;
+}
+
+.auth-alert {
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+
+.auth-alert-success { background: #d4f5e2; color: #1a6640; }
+.auth-alert-error   { background: #fde0ea; color: #8b1a3a; }
+
+/* Panel derecho */
+.auth-decoration-panel {
+    background:
+        linear-gradient(160deg, rgba(200,184,240,0.82) 0%, rgba(191,212,245,0.82) 50%, rgba(208,232,248,0.82) 100%),
+        url('/img/background.jpeg') center/cover no-repeat;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-decoration-panel h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #5c3d8f;
+    margin-bottom: 1.5rem;
+    line-height: 1.25;
+    position: relative;
+    z-index: 2;
+}
+
+.auth-decoration-panel .deco-mascot {
+    width: 220px;
+    height: 220px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 8px 20px rgba(120, 80, 180, 0.4));
+}
+
+.auth-decoration-panel .deco-bg-icon {
+    position: absolute;
+    opacity: 0.2;
+    z-index: 1;
+}
+
+.auth-decoration-panel .deco-bg-icon.top-right {
+    top: 18px;
+    right: 20px;
+    width: 70px;
+}
+
+.auth-decoration-panel .deco-bg-icon.bottom-left {
+    bottom: 20px;
+    left: 10px;
+    width: 55px;
+}
+
+.auth-decoration-panel .deco-tagline {
+    font-size: 0.95rem;
+    color: #5c3d8f;
+    font-weight: 600;
+    opacity: 0.85;
+    margin-top: 1.25rem;
+    position: relative;
+    z-index: 2;
+}
+
+@media (max-width: 700px) {
+    .auth-container {
+        grid-template-columns: 1fr;
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+    .auth-decoration-panel { display: none; }
+}
+
+
