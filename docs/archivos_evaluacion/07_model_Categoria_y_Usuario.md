@@ -20,15 +20,17 @@ graph TD
     subgraph "Modelo Categoria"
         Cat[Categoria.php] -->|hasMany| Subcat[Subcategoria.php]
         Cat -->|hasMany| Prod[Producto.php]
-        ControllerTienda[TiendaController.php] -->|Categoria::activas()->withCount('productos')| Cat
+        ControllerTienda[TiendaController.php] -->|Categoria::activas conCount productos| Cat
+        Cat --> MySQLCat[(MySQL: categorias)]
     end
 
     subgraph "Modelo Usuario (Authenticatable)"
         User[Usuario.php] -->|belongsTo| Role[Rol.php]
         User -->|hasMany| Orders[Pedido.php]
         User -->|hasMany| Addresses[Direccion.php]
-        AuthCtrl[AuthController.php] -->|Auth::login($usuario)| User
-        AdminMid[AdminMiddleware.php] -->|auth()->user()->isAdmin()| User
+        AuthCtrl[AuthController.php] -->|Auth::login usuario| User
+        AdminMid[AdminMiddleware.php] -->|auth user isAdmin| User
+        User --> MySQLUser[(MySQL: usuarios)]
     end
 ```
 
@@ -92,7 +94,7 @@ class Usuario extends Authenticatable
     // 4. Verificación de Rol Administrativo
     public function isAdmin()
     {
-        return $this->id_rol == 1;
+        return (int) $this->id_rol === 1;
     }
 }
 ```
@@ -143,13 +145,49 @@ class Categoria extends Model
 }
 ```
 
-### Análisis Técnico de `Categoria.php`:
-1. **Scope Local `scopeActivas`:** Filtra categorías donde `activo = 1`.
-2. **Relación `productos()`:** Establece que una categoría agrupa muchos productos (`hasMany`). Esto habilita en el controlador la potente instrucción `Categoria::activas()->withCount('productos')->get()`.
+---
+
+## 5. 💥 ANÁLISIS DE IMPACTO: "¿QUÉ SUCEDE SI QUITO ESTO EN EL PROYECTO?"
+
+| Si quitas... | Error técnico que ocurre | Impacto real en el sistema |
+| :--- | :--- | :--- |
+| **`extends Authenticatable` en `Usuario.php`** | `TypeError: Argument 1 passed to Illuminate\Auth\SessionGuard::login() must implement Illuminate\Contracts\Auth\Authenticatable` | El sistema de autenticación de Laravel colapsa por completo. Es imposible iniciar sesión, registrarse o recordar sesiones. |
+| **`getAuthPassword()` en `Usuario.php`** | `ErrorException: Undefined property: App\Models\Usuario::$password` o autenticación siempre fallida. | Laravel intentará validar la contraseña buscando `$usuario->password`. Al ser nulo o no existir, ningún usuario (ni admin ni clientes) podrá iniciar sesión en la tienda. |
+| **`protected $table = 'usuarios';`** | `SQLSTATE[42S02]: Base table or view not found: 1146 Table 'junos_store.users' doesn't exist` | Laravel asume por convención en inglés que el modelo `Usuario` corresponde a la tabla `users` (pluralizada en inglés). Al no existir dicha tabla, se produce un error 500 al consultar usuarios. |
+| **`protected $hidden = ['password_hash', ...]`** | Ningún error visible inmediato. | **Fuga de seguridad en APIs y JSON:** Si se envía el objeto de usuario por AJAX o se expone en una vista Vue/React/JSON, el hash cifrado de la contraseña viajará en texto plano en la red. |
+| **`public function productos()` en `Categoria.php`** | `BadMethodCallException: Call to undefined method App\Models\Categoria::productos()` | Falla la instrucción `Categoria::activas()->withCount('productos')` en `TiendaController@index`, impidiendo renderizar la tienda de inicio. |
 
 ---
 
-## 5. Preguntas Frecuentes para Evaluación
+## 6. ❓ ESCENARIOS DE CONTINGENCIA: "¿QUÉ PASA SI SUCEDE ESTO O AQUELLO?"
+
+### Escenario 1: ¿Qué pasa si un usuario no tiene apellido registrado?
+* **Comportamiento:** En el accesor `getNombreCompletoAttribute()`, la interpolación `"{$this->nombre} {$this->apellido}"` imprime limpiamente el nombre sin generar errores ni advertencias de tipo en PHP.
+
+### Escenario 2: ¿Qué pasa si una categoría se desactiva (`activo = 0`)?
+* **Comportamiento:** El scope `scopeActivas` en `Categoria.php` la filtra de la barra de navegación del catálogo público. Sin embargo, en el panel administrativo sigue visible para que el administrador pueda reactivarla cuando lo requiera.
+
+---
+
+## 7. 🛠️ POSIBLES PROBLEMAS, ERRORES COMUNES Y SOLUCIONES
+
+### Problema 1: `Call to undefined method App\Models\Usuario::isAdmin()`
+* **Causa:** El método no fue declarado en `Usuario.php` o se renombró.
+* **Solución:** Declarar en `Usuario.php`:
+  ```php
+  public function isAdmin(): bool
+  {
+      return (int) $this->id_rol === 1;
+  }
+  ```
+
+### Problema 2: `Attempt to read property 'nombre' on null` al acceder a `$usuario->rol->nombre`
+* **Causa:** El usuario en base de datos tiene `id_rol = null` o un ID que no existe en la tabla `roles`.
+* **Solución:** Usar el operador null-safe de PHP 8: `$usuario->rol?->nombre ?? 'Sin Rol'`.
+
+---
+
+## 8. 🎓 Preguntas Frecuentes para Evaluación
 
 1. **¿Cómo se configuró Laravel para que use la tabla `usuarios` en vez de `users`?**
    * *Respuesta:* En `config/auth.php`, dentro de `'providers' => ['users' => ['model' => App\Models\Usuario::class]]`, y dentro del modelo especificando `protected $table = 'usuarios';`.

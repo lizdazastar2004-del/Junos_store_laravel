@@ -5,18 +5,19 @@
 * **Ubicación:** `routes/web.php`
 * **Tipo:** Archivo de configuración de rutas web de Laravel.
 * **Capa:** Entrada / Routing (Enrutamiento HTTP).
-* **Propósito:** Definir los puntos de entrada HTTP, mapear URLs a métodos específicos de controladores, asociar nombres de ruta para enlaces dinámicos y aplicar middlewares de protección.
+* **Propósito:** Definir todos los puntos de entrada HTTP de la aplicación, asociar URLs con métodos de controladores, asignar nombres de ruta (`name()`) para enlaces dinámicos desacoplados y aplicar pipelines de middlewares para seguridad y control de acceso.
 
 ---
 
-## 2. Mapa de Conexiones
+## 2. Mapa Completo de Conexiones y Rutas
 
 ```mermaid
 graph TD
-    ClientReq[Petición del Navegador] --> WebRoutes[routes/web.php]
+    ClientReq[🌐 Petición del Navegador Web] --> WebRoutes[routes/web.php]
 
-    subgraph "Rutas Públicas"
+    subgraph "1. Rutas Públicas (Sin sesión requerida)"
         WebRoutes -->|GET /| TiendaIndex[TiendaController@index]
+        WebRoutes -->|GET /catalogo| TiendaCat[TiendaController@index]
         WebRoutes -->|GET /productos/{id}| TiendaShow[TiendaController@show]
         WebRoutes -->|GET /login| AuthShowLogin[AuthController@showLogin]
         WebRoutes -->|POST /login| AuthLogin[AuthController@login]
@@ -25,109 +26,183 @@ graph TD
         WebRoutes -->|POST /registro| AuthReg[AuthController@registro]
     end
 
-    subgraph "Grupo Protegido (/admin)"
-        WebRoutes -->|Prefijo: admin + Middlewares: auth, admin| AdminGroup[Grupo Admin]
-        AdminGroup -->|GET /admin| AdminDash[view: admin.dashboard]
-        AdminGroup -->|GET /admin/productos| ProdIndex[AdminProductoController@index]
-        AdminGroup -->|GET /admin/productos/crear| ProdCreate[AdminProductoController@create]
-        AdminGroup -->|POST /admin/productos| ProdStore[AdminProductoController@store]
-        AdminGroup -->|GET /admin/productos/{id}/editar| ProdEdit[AdminProductoController@edit]
-        AdminGroup -->|PUT /admin/productos/{id}| ProdUpdate[AdminProductoController@update]
-        AdminGroup -->|DELETE /admin/productos/{id}| ProdDestroy[AdminProductoController@destroy]
+    subgraph "2. Rutas del Cliente (middleware: auth)"
+        WebRoutes -->|middleware: auth| ClientGroup[Área Cliente]
+        ClientGroup -->|GET /carrito| CarritoIndex[CarritoController@index]
+        ClientGroup -->|POST /carrito/agregar| CarritoAdd[CarritoController@agregar]
+        ClientGroup -->|POST /carrito/actualizar| CarritoUpd[CarritoController@actualizar]
+        ClientGroup -->|POST /carrito/eliminar| CarritoDel[CarritoController@eliminar]
+        ClientGroup -->|POST /carrito/descuento| CarritoDesc[CarritoController@aplicarDescuento]
+        ClientGroup -->|GET /checkout| PedidoCheck[PedidoController@checkout]
+        ClientGroup -->|POST /pedidos/confirmar| PedidoConf[PedidoController@confirmar]
+        ClientGroup -->|GET /pedidos/confirmacion/{id}| PedidoOk[PedidoController@confirmacion]
+        ClientGroup -->|GET /pedidos/historial| PedidoHist[PedidoController@historial]
+        ClientGroup -->|GET /pedidos/{id}| PedidoDet[PedidoController@detalle]
+        ClientGroup -->|GET /mi-cuenta| CliDash[ClienteController@dashboard]
+        ClientGroup -->|POST /cliente/perfil| CliPerfil[ClienteController@actualizarPerfil]
+        ClientGroup -->|POST /cliente/password| CliPass[ClienteController@cambiarPassword]
+        ClientGroup -->|POST /cliente/direccion| CliDirStore[ClienteController@guardarDireccion]
+        ClientGroup -->|DELETE /cliente/direccion/{id}| CliDirDel[ClienteController@eliminarDireccion]
+    end
+
+    subgraph "3. Rutas Administrativas (prefix: admin + middleware: [auth, admin])"
+        WebRoutes -->|prefix: admin + middleware: [auth, admin]| AdminGroup[Área Administrativa]
+        AdminGroup -->|GET /admin| AdminDash[AdminDashboardController@index]
+        AdminGroup -->|POST /admin/mantenimiento/*| AdminMaint[Herramientas de Mantenimiento]
+        AdminGroup -->|CRUD /admin/productos| AdminProd[AdminProductoController CRUD]
+        AdminGroup -->|GET /admin/pedidos| AdminPedIndex[AdminPedidoController@index]
+        AdminGroup -->|GET /admin/pedidos/{id}| AdminPedShow[AdminPedidoController@show]
+        AdminGroup -->|POST /admin/pedidos/{id}/estado| AdminPedStatus[AdminPedidoController@cambiarEstado]
+        AdminGroup -->|GET /admin/usuarios| AdminUserIndex[AdminUsuarioController@index]
+        AdminGroup -->|POST /admin/usuarios/{id}/toggle| AdminUserToggle[AdminUsuarioController@toggleActivo]
     end
 ```
 
 ---
 
-## 3. Código Fuente Completo y Explicación Línea por Línea
+## 3. Código Fuente Actual y Explicación Detallada
 
 ```php
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminPedidoController;
 use App\Http\Controllers\AdminProductoController;
+use App\Http\Controllers\AdminUsuarioController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\TiendaController;
 use Illuminate\Support\Facades\Route;
 ```
-* **Líneas 1-6:** Importación de namespaces necesarios. Se importan los tres controladores principales (`AdminProductoController`, `AuthController`, `TiendaController`) y la fachada estática `Route`.
+* **Líneas 1-12:** Importación explícita de controladores con su namespace (`App\Http\Controllers\...`) y de la fachada estática `Route`. En Laravel 11/12 se utiliza la sintaxis de array invocable `[Controlador::class, 'metodo']`, que proporciona detección de errores en tiempo de compilación y soporte en IDEs.
 
 ---
 
-### Bloque A: Rutas Públicas de la Tienda
+### Bloque A: Rutas Públicas (Tienda y Catálogo)
 ```php
-// =====================================================
-// RUTAS PÚBLICAS - TIENDA
-// =====================================================
-
 Route::get('/', [TiendaController::class, 'index'])->name('tienda.index');
+Route::get('/catalogo', [TiendaController::class, 'index'])->name('tienda.catalogo');
 Route::get('/productos/{id}', [TiendaController::class, 'show'])->name('tienda.producto');
 ```
-* **Línea 12 (`GET /`):** Define la raíz del sitio web. Ejecuta el método `index` de `TiendaController`. Su nombre `tienda.index` permite invocarla en Blade con `route('tienda.index')`.
-* **Línea 13 (`GET /productos/{id}`):** Ruta de detalle individual. Recibe el parámetro dinámico `{id}` en la URL y lo transfiere al método `show($id)` de `TiendaController`.
+* `tienda.index` y `tienda.catalogo`: Apuntan al mismo método `index()` para permitir navegación fluida desde la barra de menú o desde el banner principal.
+* `tienda.producto`: Recibe el parámetro dinámico `{id}` en la URL y lo inyecta como primer argumento al método `show($id)`.
 
 ---
 
-### Bloque B: Rutas de Autenticación
+### Bloque B: Rutas del Carrito, Checkout y Portal Cliente (`auth`)
 ```php
-// =====================================================
-// RUTAS DE AUTENTICACIÓN
-// =====================================================
+Route::middleware('auth')->group(function () {
+    // Carrito
+    Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito.index');
+    Route::post('/carrito/agregar', [CarritoController::class, 'agregar'])->name('carrito.agregar');
+    Route::post('/carrito/actualizar', [CarritoController::class, 'actualizar'])->name('carrito.actualizar');
+    Route::post('/carrito/eliminar', [CarritoController::class, 'eliminar'])->name('carrito.eliminar');
+    Route::post('/carrito/descuento', [CarritoController::class, 'aplicarDescuento'])->name('carrito.descuento');
 
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    // Checkout y Pedidos
+    Route::get('/checkout', [PedidoController::class, 'checkout'])->name('checkout');
+    Route::post('/pedidos/confirmar', [PedidoController::class, 'confirmar'])->name('pedidos.confirmar');
+    Route::get('/pedidos/confirmacion/{id}', [PedidoController::class, 'confirmacion'])->name('pedidos.confirmacion');
+    Route::get('/pedidos/historial', [PedidoController::class, 'historial'])->name('pedidos.historial');
+    Route::get('/pedidos/{id}', [PedidoController::class, 'detalle'])->name('pedidos.detalle');
 
-Route::get('/registro', [AuthController::class, 'showRegistro'])->name('registro');
-Route::post('/registro', [AuthController::class, 'registro']);
+    // Portal Personal del Cliente ("Mi Espacio Kawaii")
+    Route::get('/mi-cuenta', [ClienteController::class, 'dashboard'])->name('cliente.dashboard');
+    Route::post('/cliente/perfil', [ClienteController::class, 'actualizarPerfil'])->name('cliente.perfil.actualizar');
+    Route::post('/cliente/password', [ClienteController::class, 'cambiarPassword'])->name('cliente.password.actualizar');
+    Route::post('/cliente/direccion', [ClienteController::class, 'guardarDireccion'])->name('cliente.direccion.guardar');
+    Route::delete('/cliente/direccion/{id}', [ClienteController::class, 'eliminarDireccion'])->name('cliente.direccion.eliminar');
+});
 ```
-* **Líneas 19-20:** El método `GET /login` despliega el formulario visual kawaii de acceso. El método `POST /login` recibe las credenciales (`email` y `password`) para procesar el intento de autenticación.
-* **Línea 21 (`POST /logout`):** Cierra la sesión activa del usuario, invalida el token de sesión y regenera el token CSRF para prevenir ataques de fijación de sesión.
-* **Líneas 23-24:** El método `GET /registro` muestra la vista con el formulario de nuevo usuario. El método `POST /registro` procesa los datos, valida reglas y persiste el registro en MySQL.
+* **`middleware('auth')`:** Aplica el guardián de autenticación. Si el visitante no ha iniciado sesión, Laravel lo intercepta y lo envía de inmediato a la ruta con nombre `login`.
+* Permite agrupar las acciones que requieren conocer la identidad del comprador (`Auth::id()`) para persistir su carrito y pedidos en MySQL.
 
 ---
 
-### Bloque C: Rutas Administrativas Protegidas
+### Bloque C: Rutas Administrativas Protegidas (`auth` + `admin`)
 ```php
-// =====================================================
-// RUTAS ADMINISTRADOR (requieren autenticación)
-// =====================================================
-
 Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
+    Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Dashboard
-    Route::get('/', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    // Mantenimiento
+    Route::post('/mantenimiento/activar-stock', [AdminDashboardController::class, 'activarProductosConStock'])->name('mantenimiento.activar-stock');
+    Route::post('/mantenimiento/reponer-agotados', [AdminDashboardController::class, 'reponerStockAgotados'])->name('mantenimiento.reponer-agotados');
+    Route::post('/mantenimiento/limpiar-cache', [AdminDashboardController::class, 'limpiarCache'])->name('mantenimiento.limpiar-cache');
+    Route::post('/mantenimiento/limpiar-carritos', [AdminDashboardController::class, 'limpiarCarritos'])->name('mantenimiento.limpiar-carritos');
+    Route::post('/mantenimiento/cargar-datos-prueba', [AdminDashboardController::class, 'cargarDatosPrueba'])->name('mantenimiento.cargar-datos-prueba');
+    Route::post('/productos/{id}/ajustar-stock', [AdminDashboardController::class, 'ajustarStock'])->name('productos.ajustar-stock');
 
-    // Productos
+    // CRUD Productos
     Route::get('/productos', [AdminProductoController::class, 'index'])->name('productos.index');
     Route::get('/productos/crear', [AdminProductoController::class, 'create'])->name('productos.create');
     Route::post('/productos', [AdminProductoController::class, 'store'])->name('productos.store');
     Route::get('/productos/{id}/editar', [AdminProductoController::class, 'edit'])->name('productos.edit');
     Route::put('/productos/{id}', [AdminProductoController::class, 'update'])->name('productos.update');
     Route::delete('/productos/{id}', [AdminProductoController::class, 'destroy'])->name('productos.destroy');
+
+    // Pedidos y Usuarios
+    Route::get('/pedidos', [AdminPedidoController::class, 'index'])->name('pedidos.index');
+    Route::get('/pedidos/{id}', [AdminPedidoController::class, 'show'])->name('pedidos.show');
+    Route::post('/pedidos/{id}/estado', [AdminPedidoController::class, 'cambiarEstado'])->name('pedidos.estado');
+    Route::get('/usuarios', [AdminUsuarioController::class, 'index'])->name('usuarios.index');
+    Route::post('/usuarios/{id}/toggle', [AdminUsuarioController::class, 'toggleActivo'])->name('usuarios.toggle');
 });
 ```
-* **Línea 30:** 
-  * `prefix('admin')`: Antepone automáticamente `/admin` a todas las URLs dentro del grupo (ej. `/admin/productos`).
-  * `middleware(['auth', 'admin'])`: Pipeline de doble seguridad. Primero verifica que el usuario esté logueado (`auth`); luego, el `AdminMiddleware` comprueba que posea rol de administrador (`id_rol == 1`).
-  * `name('admin.')`: Prefijo de nombres de ruta (ej. `admin.dashboard`, `admin.productos.index`).
-* **Líneas 33-35:** Renderiza directamente la vista del panel administrativo `admin.dashboard`.
-* **Líneas 38-43 (RESTful CRUD de Productos):**
-  * `GET /admin/productos` $\rightarrow$ Listado paginado con filtros.
-  * `GET /admin/productos/crear` $\rightarrow$ Formulario de alta.
-  * `POST /admin/productos` $\rightarrow$ Guardado de nuevo producto en base de datos.
-  * `GET /admin/productos/{id}/editar` $\rightarrow$ Formulario con datos precargados para modificación.
-  * `PUT /admin/productos/{id}` $\rightarrow$ Actualización en MySQL (usa method spoofing `@method('PUT')` en HTML).
-  * `DELETE /admin/productos/{id}` $\rightarrow$ Eliminación física/lógica del registro.
 
 ---
 
-## 4. Preguntas Frecuentes para Evaluación
+## 4. 💥 ANÁLISIS DE IMPACTO: "¿QUÉ SUCEDE SI QUITO ESTO EN EL PROYECTO?"
 
-1. **¿Por qué se usan nombres de ruta (`name()`) en lugar de URLs fijas?**
-   * *Respuesta:* Permite desacoplar las vistas de las URLs físicas. Si en el futuro cambiamos `/productos/{id}` por `/catalogo/{id}`, solo modificamos `routes/web.php` y ningún enlace en las vistas Blade se romperá.
-2. **¿Cómo funciona el `middleware(['auth', 'admin'])`?**
-   * *Respuesta:* Funciona como una tubería secuencial (pipeline). Si un usuario anónimo intenta acceder a `/admin/productos`, el middleware `auth` lo redirige a `/login`. Si entra un usuario autenticado pero con rol de cliente, el middleware `admin` lo bloquea con un código HTTP 403 (Acceso Prohibido).
-3. **¿Por qué las rutas de actualización y borrado usan `PUT` y `DELETE` si HTML solo soporta `GET` y `POST`?**
-   * *Respuesta:* Laravel utiliza *Method Spoofing* a través de la directiva `@method('PUT')` o `@method('DELETE')`, la cual inyecta un campo oculto `_method` que el kernel de Laravel interpreta para despachar la ruta correcta.
+Esta sección es fundamental para tu evaluación: si el evaluador te pregunta *"¿Qué pasa si borras esta línea?"*, aquí tienes la respuesta técnica exacta:
+
+| Si quitas... | Error técnico que ocurre | Impacto real en el sistema |
+| :--- | :--- | :--- |
+| **`middleware(['auth', 'admin'])`** | Ningún error de código (código 200 OK). | **Brecha crítica de seguridad:** Cualquier visitante anónimo o cliente normal podría entrar a `/admin`, ver los ingresos monetarios, crear o borrar productos y alterar el stock sin tener cuenta de administrador. |
+| **`middleware('auth')` en el grupo de Carrito** | `Error: Call to a member function id() on null` en los controladores. | Al no existir usuario autenticado, `$request->user()->id_usuario` o `Auth::id()` devuelve `null`. El sistema colapsa al intentar buscar el carrito del cliente en base de datos. |
+| **`->name('...')` en una ruta** | `Symfony\Component\Routing\Exception\RouteNotFoundException: Route [nombre.ruta] not defined.` | Todas las vistas Blade que utilicen `route('nombre.ruta')` o los redireccionamientos en los controladores (`redirect()->route(...)`) romperán la aplicación con pantalla de error 500. |
+| **`{id}` en `Route::get('/productos/{id}')`** | `ArgumentCountError: Too few arguments to function TiendaController::show(), 0 passed.` | El controlador espera obligatoriamente el parámetro `$id`. Si la ruta no define `{id}`, Laravel no sabrá qué producto consultar y la aplicación generará una excepción 500. |
+| **`prefix('admin')`** | `404 Not Found` al visitar URLs como `/admin/productos`. | Todas las rutas administrativas pasan a vivir en la raíz (ej. `/productos`), colisionando o sobrescribiendo las rutas públicas de la tienda. |
+| **`name('admin.')`** | `RouteNotFoundException: Route [admin.dashboard] not defined.` | El prefijo de nombre evita escribir `admin.` manualmente en cada una de las 15 rutas hijas. Si se quita, fallan todas las redirecciones del panel. |
+
+---
+
+## 5. ❓ ESCENARIOS DE CONTINGENCIA: "¿QUÉ PASA SI SUCEDE ESTO O AQUELLO?"
+
+### Escenario 1: ¿Qué pasa si un usuario no logueado intenta entrar a `/carrito` o `/checkout`?
+* **Comportamiento:** El middleware `auth` captura la petición antes de que toque el controlador, guarda la URL que deseaba en la sesión (`url.intended`) y lo redirige automáticamente a `/login`. Tras loguearse con éxito, `intended()` lo devuelve automáticamente a su carrito.
+
+### Escenario 2: ¿Qué pasa si un usuario con rol de cliente (`id_rol = 2`) ingresa manualmente `/admin` en su navegador?
+* **Comportamiento:** Pasa el middleware `auth` (porque está logueado), pero es bloqueado en seco por `AdminMiddleware`, el cual ejecuta `abort(403, 'Acceso no autorizado al panel administrativo')`. El usuario ve una pantalla de error 403 y nunca tiene acceso a datos de gestión.
+
+### Escenario 3: ¿Qué pasa si un cliente intenta ver el detalle de un pedido que pertenece a otro usuario (`/pedidos/{id}`)?
+* **Comportamiento:** En `PedidoController@detalle`, se ejecuta la validación:
+  ```php
+  if ($pedido->id_usuario !== Auth::id()) {
+      abort(403, 'No tienes permiso para ver este pedido');
+  }
+  ```
+  Esto garantiza que ningún cliente pueda espiar las compras de otra persona mediante *Insecure Direct Object Reference* (IDOR).
+
+### Escenario 4: ¿Qué pasa si se envía un formulario POST sin `@csrf`?
+* **Comportamiento:** Laravel rechaza la petición con una pantalla de error **`419 | Page Expired`**. Esto protege al sistema contra ataques de falsificación de peticiones en sitios cruzados (*Cross-Site Request Forgery*).
+
+---
+
+## 6. 🛠️ POSIBLES PROBLEMAS, ERRORES COMUNES Y SOLUCIONES
+
+### Problema 1: `MethodNotAllowedHttpException: The POST method is not supported for route admin/productos/5. Supported methods: PUT.`
+* **Causa:** El formulario HTML de edición en Blade tiene `<form method="POST">` pero olvidó incluir la directiva `@method('PUT')`.
+* **Solución:** Agregar `@method('PUT')` inmediatamente debajo de `@csrf` dentro del `<form>`.
+
+### Problema 2: `RouteNotFoundException: Route [admin.dashboard] not defined`
+* **Causa:** La caché de rutas de Laravel quedó obsoleta tras editar `routes/web.php`.
+* **Solución:** Ejecutar en la terminal de Laragon:
+  ```bash
+  php artisan route:clear
+  ```
+
+### Problema 3: Las rutas nuevas no se ven reflejadas o arrojan 404
+* **Causa:** Conflicto de orden en las rutas. Si defines `Route::get('/productos/{id}')` ANTES de `Route::get('/productos/crear')`, Laravel pensará que la palabra "crear" es un `{id}` numérico.
+* **Solución:** En Laravel las rutas estáticas específicas siempre deben colocarse **antes** que las rutas con comodines dinámicos `{id}`.

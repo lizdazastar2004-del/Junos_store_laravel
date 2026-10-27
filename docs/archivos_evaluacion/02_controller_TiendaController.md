@@ -13,21 +13,22 @@
 
 ```mermaid
 graph LR
-    subgraph "Entrada"
+    subgraph "Entrada HTTP"
         RouteIndex[Route: tienda.index] -->|GET /?q=peluche&categoria=1| TiendaCtrlIndex[TiendaController@index]
         RouteShow[Route: tienda.producto] -->|GET /productos/{id}| TiendaCtrlShow[TiendaController@show]
     end
 
-    subgraph "Modelos y Datos"
-        TiendaCtrlIndex -->|Eager loading: with() + Scopes: activos(), conStock()| ModelProd[Producto.php]
-        TiendaCtrlIndex -->|withCount('productos')| ModelCat[Categoria.php]
-        TiendaCtrlShow -->|findOrFail($id) con relaciones| ModelProd
-        TiendaCtrlShow -->|Productos relacionados de misma categoría| ModelProd
+    subgraph "Modelos y Datos (M)"
+        TiendaCtrlIndex -->|Eager loading: with + Scopes: activos, conStock| ModelProd[Producto.php]
+        TiendaCtrlIndex -->|withCount productos| ModelCat[Categoria.php]
+        TiendaCtrlShow -->|findOrFail $id con relaciones| ModelProd
+        TiendaCtrlShow -->|Productos relacionados misma categoria| ModelProd
+        ModelProd --> MySQL[(MySQL: junos_store)]
     end
 
-    subgraph "Salida / Vistas"
-        TiendaCtrlIndex -->|compact('productos', 'categorias')| ViewIndex[resources/views/tienda/index.blade.php]
-        TiendaCtrlShow -->|compact('producto', 'relacionados')| ViewDetalle[resources/views/tienda/detalle.blade.php]
+    subgraph "Salida / Vistas Blade (V)"
+        TiendaCtrlIndex -->|compact productos, categorias| ViewIndex[resources/views/tienda/index.blade.php]
+        TiendaCtrlShow -->|compact producto, relacionados| ViewDetalle[resources/views/tienda/detalle.blade.php]
     end
 ```
 
@@ -114,10 +115,50 @@ public function show($id)
 
 ---
 
-## 4. Preguntas Frecuentes para Evaluación
+## 4. 💥 ANÁLISIS DE IMPACTO: "¿QUÉ SUCEDE SI QUITO ESTO EN EL PROYECTO?"
+
+| Si quitas... | Error técnico que ocurre | Impacto real en el sistema |
+| :--- | :--- | :--- |
+| **`with(['categoria', 'subcategoria', 'imagenes'])`** | Ningún error visual aparente, pero el log de consultas MySQL registrará decenas de queries adicionales. | **Problema N+1 y colapso de rendimiento:** Al iterar 12 productos en Blade, cada acceso a `$prod->categoria->nombre` o `$prod->imagenes` ejecutará una nueva consulta SQL individual (más de 37 queries por página en vez de 3). |
+| **`->conStock()`** | Ningún error de código. | **Experiencia comercial negativa:** Se mostrarán productos con stock 0 en la vitrina pública. El cliente intentará comprarlos y fallará en el checkout, generando desconfianza. |
+| **`->activos()`** | Ningún error de código. | **Fuga de productos descontinuados o borrados:** Los productos que el administrador eliminó o desactivó (`activo = 0`) seguirán apareciendo a la venta pública. |
+| **La función anónima en `$query->where(function ($q) ...)`** | Rompe la precedencia de operadores booleanos en SQL: `WHERE activo = 1 AND nombre LIKE ? OR descripcion LIKE ?`. | Al usar `OR` sin paréntesis, cualquier producto cuya descripción coincida con la búsqueda será listado **incluso si está inactivo (`activo = 0`) o con stock 0**. |
+| **`findOrFail($id)` por `find($id)`** | `Attempt to read property "activo" on null` (Error 500 fatal). | Si el visitante coloca un ID que no existe (ej. `/productos/999`), `find()` retorna `null`. La línea siguiente `$producto->activo` hace explotar PHP con error 500 en lugar de mostrar la página 404. |
+| **`compact('productos', 'categorias')`** | `ErrorException: Undefined variable $productos` en `index.blade.php`. | La vista Blade no recibe las variables de la base de datos y la aplicación arroja un error 500 inmediato al cargar la página de inicio. |
+
+---
+
+## 5. ❓ ESCENARIOS DE CONTINGENCIA: "¿QUÉ PASA SI SUCEDE ESTO O AQUELLO?"
+
+### Escenario 1: ¿Qué pasa si el cliente busca una palabra que no coincide con ningún producto (`?q=xyz123`)?
+* **Comportamiento:** La colección paginada `$productos` llega vacía (`count() === 0`). En `index.blade.php`, la directiva `@forelse` detecta la colección vacía y ejecuta el bloque `@empty`, mostrando una ilustración kawaii con el mensaje *"No encontramos productos que coincidan con tu búsqueda 🌸"*, manteniendo una interfaz limpia sin errores.
+
+### Escenario 2: ¿Qué pasa si un producto no tiene imágenes registradas en la tabla `producto_imagenes`?
+* **Comportamiento:** En `Producto.php`, el accesor `imagen_principal` verifica si `$this->imagenes->first()` existe. Si es nulo, retorna por defecto la imagen placeholder del sistema (`/img/placeholder-kawaii.svg`), evitando imágenes rotas con la "X" del navegador.
+
+### Escenario 3: ¿Qué pasa si el administrador desactiva un producto que un usuario tenía guardado en favoritos o en su historial?
+* **Comportamiento:** Al entrar a `/productos/{id}`, la línea 92 detecta `if (!$producto->activo)` y ejecuta `abort(404, 'Producto no disponible')`. El usuario ve la pantalla de error 404 personalizada de Junos Store y no puede añadirlo a su carrito.
+
+---
+
+## 6. 🛠️ POSIBLES PROBLEMAS, ERRORES COMUNES Y SOLUCIONES
+
+### Problema 1: "Cargué productos en MySQL pero no aparecen en la tienda"
+* **Causa:** El producto tiene `activo = 0` o `stock_actual = 0`. El controlador filtra con `->activos()->conStock()`.
+* **Solución:**
+  1. Entrar al panel admin `/admin/dashboard` y usar el botón **"Activar Productos con Stock"** o **"Reponer Stock de Agotados"**.
+  2. O directamente en MySQL: `UPDATE productos SET activo = 1, stock_actual = 10 WHERE id_producto = ?;`.
+
+### Problema 2: `Call to a member function paginate() on null`
+* **Causa:** Se encadenó un método que retornó `null` antes de llamar a `paginate()`.
+* **Solución:** Asegurarse de que la variable `$query` sea una instancia de `Illuminate\Database\Eloquent\Builder`, encadenando los filtros condicionales solo con `$query->where(...)`.
+
+---
+
+## 7. 🎓 Preguntas Frecuentes para Evaluación
 
 1. **¿Qué es el problema N+1 y cómo lo soluciona este controlador?**
-   * *Respuesta:* Ocurre cuando al iterar 12 productos en una vista, se hace 1 consulta para los productos y 12 consultas adicionales para sus categorías (1+N). `TiendaController` lo previene usando `with(['categoria', 'subcategoria', 'imagenes'])`, reduciendo las consultas a un número constante mínimo.
+   * *Respuesta:* Ocurre cuando al iterar 12 productos en una vista, se hace 1 consulta para los productos y 12 consultas adicionales para sus categorías (1+N). `TiendaController` lo previene usando `with(['categoria', 'subcategoria', 'imagenes'])`, reduciendo las consultas a un número constante mínimo optimizado.
 2. **¿Qué diferencia hay entre `$request->has('q')` y `$request->filled('q')`?**
    * *Respuesta:* `$request->has('q')` devuelve `true` si el parámetro existe en la URL aunque esté vacío (`?q=`). `$request->filled('q')` verifica que exista **y** contenga texto real, evitando búsquedas vacías innecesarias en la base de datos.
 3. **¿Cómo recibe la vista Blade las variables del controlador?**

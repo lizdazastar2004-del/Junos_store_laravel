@@ -22,7 +22,7 @@ graph TD
         RDestroy[DELETE /admin/productos/{id}] --> CDestroy[AdminProductoController@destroy]
     end
 
-    subgraph "Modelos Consultados / Mutados"
+    subgraph "Modelos Consultados / Mutados (M)"
         CIndex --> ModelProd[Producto.php]
         CCreate --> ModelCat[Categoria.php]
         CCreate --> ModelSub[Subcategoria.php]
@@ -31,9 +31,10 @@ graph TD
         CEdit --> ModelProd
         CUpdate --> ModelProd
         CDestroy --> ModelProd
+        ModelProd --> MySQL[(MySQL: junos_store)]
     end
 
-    subgraph "Vistas y Redirecciones"
+    subgraph "Vistas y Redirecciones (V)"
         CIndex --> ViewIndex[admin/productos/index.blade.php]
         CCreate --> ViewCreate[admin/productos/crear.blade.php]
         CStore -->|redirect con session success| ViewIndex
@@ -165,7 +166,7 @@ public function update(Request $request, $id)
         ->with('success', 'Producto actualizado exitosamente');
 }
 ```
-* **Excepción de clave única en validación:** `'sku' => 'nullable|unique:productos,sku,'.$id.',id_producto'`. Permite guardar cambios en el producto sin que el validador rechace su propio SKU existente como duplicado.
+* **Excepción de clave única en validación:** `'sku' => 'nullable|unique:productos,sku,' . $id . ',id_producto'`. Permite guardar cambios en el producto sin que el validador rechace su propio SKU existente como duplicado.
 
 ---
 
@@ -186,7 +187,44 @@ public function destroy($id)
 
 ---
 
-## 4. Preguntas Frecuentes para Evaluación
+## 4. 💥 ANÁLISIS DE IMPACTO: "¿QUÉ SUCEDE SI QUITO ESTO EN EL PROYECTO?"
+
+| Si quitas... | Error técnico que ocurre | Impacto real en el sistema |
+| :--- | :--- | :--- |
+| **`unique:productos,sku,'.$id.',id_producto` en `update()`** | `The sku has already been taken.` (Error de validación al guardar). | El administrador no podrá modificar ningún dato de un producto existente (ni el precio ni el nombre) si conserva su mismo SKU, porque la regla pensará que el SKU ya está en uso por otro producto. |
+| **`$data['activo'] = $request->has('activo') ? 1 : 0;`** | Si se desmarca el checkbox, el campo `activo` no se actualiza en base de datos. | En HTML, un checkbox desmarcado no envía ningún valor en la petición HTTP. Sin esta normalización, el producto nunca podría ser desactivado desde el formulario de edición. |
+| **La validación `exists:categorias,id_categoria`** | `SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails` | Si alguien manipula el HTML e ingresa un `id_categoria` inexistente (ej. 9999), MySQL rechaza la inserción con un error fatal 500 no controlado. Con `exists`, Laravel devuelve un mensaje de validación limpio en pantalla. |
+| **El soft delete `$producto->activo = 0` y usas `$producto->delete()`** | `SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (pedidos_detalle -> productos)`. | Se destruye la integridad referencial. Si un cliente compró este producto en el pasado, la base de datos bloquea el borrado con error 500, o si tiene `CASCADE`, se borran los registros contables de las ventas realizadas. |
+| **`Producto::create($data)` con `$fillable` vacío en el modelo** | `Illuminate\Database\Eloquent\MassAssignmentException: Add [nombre] to fillable property to allow mass assignment on [App\Models\Producto].` | La creación de productos colapsa por completo. Laravel bloquea cualquier asignación masiva no autorizada explícitamente en el modelo. |
+
+---
+
+## 5. ❓ ESCENARIOS DE CONTINGENCIA: "¿QUÉ PASA SI SUCEDE ESTO O AQUELLO?"
+
+### Escenario 1: ¿Qué pasa si el administrador deja el campo SKU vacío al crear un producto?
+* **Comportamiento:** En la línea 101, la condición `if (empty($data['sku']))` genera automáticamente un código comercial único con formato `JUNO-XXXXXX` (ej. `JUNO-048291`), evitando que la columna quede nula o genere error de clave única en MySQL.
+
+### Escenario 2: ¿Qué pasa si el administrador ingresa un precio negativo (ej. `-5000`)?
+* **Comportamiento:** La regla de validación `'precio' => 'required|numeric|min:0'` intercepta la petición, detiene la ejecución antes de tocar la base de datos y redirige hacia atrás (`back()`) desplegando el mensaje de error: *"El campo precio debe ser al menos 0"*.
+
+### Escenario 3: ¿Qué pasa si el stock actual cae por debajo del stock mínimo?
+* **Comportamiento:** En la vista del inventario (`admin/productos/index.blade.php`), se evalúa `@if($prod->stock_actual <= $prod->stock_minimo)` y se dibuja automáticamente una insignia de alerta con badge `"Stock Bajo"` en color ámbar/rojo pastel para que el administrador reabastezca.
+
+---
+
+## 6. 🛠️ POSIBLES PROBLEMAS, ERRORES COMUNES Y SOLUCIONES
+
+### Problema 1: `MassAssignmentException` al guardar un nuevo campo
+* **Causa:** Se agregó una columna nueva a la tabla `productos` (por ejemplo, `peso_gramos`) pero no se agregó al array `$fillable` en `app/Models/Producto.php`.
+* **Solución:** Abrir `app/Models/Producto.php` y agregar `'peso_gramos'` dentro del array `protected $fillable = [...]`.
+
+### Problema 2: Error 419 al intentar eliminar un producto mediante el botón Borrar
+* **Causa:** El botón de borrado ejecuta un `<form method="POST">` con `@method('DELETE')`, pero falta el token `@csrf`.
+* **Solución:** Verificar que dentro del `<form>` de eliminación esté presente `@csrf`.
+
+---
+
+## 7. 🎓 Preguntas Frecuentes para Evaluación
 
 1. **¿Por qué se prefiere un borrado lógico (`activo = 0`) sobre un borrado físico (`$producto->delete()`)?**
    * *Respuesta:* Por integridad de datos en comercio electrónico. Si un cliente compró este producto el mes pasado y se borra físicamente, las tablas `pedidos_detalle` quedarían huérfanas o provocarían un error de clave foránea en la base de datos MySQL.

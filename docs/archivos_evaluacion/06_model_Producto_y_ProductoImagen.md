@@ -182,16 +182,52 @@ class ProductoImagen extends Model
 }
 ```
 
-### Innovación Técnica en `ProductoImagen.php`:
-* **El Problema Original:** La base de datos original de MySQL almacenaba los nombres de columna `url_imagen` y `principal` con valores como `/public/img/productos/1/foto.jpg`. Si una vista invocaba `$imagen->ruta_imagen` o `asset($imagen->url_imagen)`, Laravel fallaba porque `public` es la raíz del servidor web, generando rutas inválidas como `http://localhost/public/img/...`.
-* **La Solución con Accesores (`get*Attribute`):**
-  * `ruta_imagen`: Devuelve de forma transparente el valor de `url_imagen` si `ruta_imagen` no está seteado.
-  * `es_principal`: Normaliza `principal` a booleano.
-  * `url_limpia`: Utiliza una expresión regular (`#^/?public/#`) para eliminar el prefijo `/public/`, permitiendo que `asset($imagen->url_limpia)` apunte con total precisión a los recursos estáticos.
+---
+
+## 5. 💥 ANÁLISIS DE IMPACTO: "¿QUÉ SUCEDE SI QUITO ESTO EN EL PROYECTO?"
+
+| Si quitas... | Error técnico que ocurre | Impacto real en el sistema |
+| :--- | :--- | :--- |
+| **`protected $primaryKey = 'id_producto';`** | `SQLSTATE[42S22]: Column not found: 1054 Unknown column 'id' in 'where clause'` | Laravel intentará buscar o actualizar registros usando `WHERE id = ?`. Como la columna física en MySQL se llama `id_producto`, cada llamada a `find()`, `update()` o `delete()` arrojará una excepción fatal 500. |
+| **`public function imagenes()` en `Producto.php`** | `BadMethodCallException: Call to undefined method App\Models\Producto::imagenes()` | Al cargar la tienda o el detalle de un producto, la relación `with('imagenes')` o la propiedad `$producto->imagenes` fallará de inmediato, impidiendo cargar las fotos de los productos. |
+| **`getUrlLimpiaAttribute()` en `ProductoImagen.php`** | Las imágenes no cargan y el navegador muestra el ícono de imagen rota. | Las rutas heredadas de la base de datos que comienzan con `/public/img/...` intentarán cargarse como `http://127.0.0.1:8000/public/img/...`, ruta que no existe porque el DocumentRoot de Laravel ya es la carpeta `public`. |
+| **`protected $fillable` en `Producto.php`** | `Illuminate\Database\Eloquent\MassAssignmentException: Add [nombre] to fillable property to allow mass assignment on [App\Models\Producto].` | El método `Producto::create($data)` del panel administrativo se bloquea por completo, impidiendo registrar cualquier producto nuevo. |
+| **`public function scopeConStock($query)`** | `BadMethodCallException: Call to undefined method App\Models\Producto::conStock()` | Rompe inmediatamente la consulta del catálogo en `TiendaController@index` al intentar invocar `->conStock()`. |
 
 ---
 
-## 5. Preguntas Frecuentes para Evaluación
+## 6. ❓ ESCENARIOS DE CONTINGENCIA: "¿QUÉ PASA SI SUCEDE ESTO O AQUELLO?"
+
+### Escenario 1: ¿Qué pasa si la base de datos devuelve un precio con muchos decimales (ej. `25000.559999`)?
+* **Comportamiento:** La propiedad `protected $casts = ['precio' => 'decimal:2']` formatea automáticamente el número a exactamente 2 posiciones decimales (`25000.56`), garantizando coherencia visual y cálculos contables exactos en pesos/dólares.
+
+### Escenario 2: ¿Qué pasa si un producto tiene 5 fotos y se necesita identificar cuál va en la tarjeta del catálogo?
+* **Comportamiento:** En `ProductoImagen.php`, la columna `principal` (o `es_principal`) marca la portada. En la vista se utiliza `$producto->imagenes->where('es_principal', true)->first()`, y si ninguna está marcada, se toma `$producto->imagenes->first()`, evitando dejar la tarjeta sin portada.
+
+---
+
+## 7. 🛠️ POSIBLES PROBLEMAS, ERRORES COMUNES Y SOLUCIONES
+
+### Problema 1: `Unknown column 'updated_at' in 'field list'`
+* **Causa:** Laravel intenta actualizar automáticamente las columnas estándar en inglés `created_at` y `updated_at` que no existen en esta base de datos en español.
+* **Solución:** Declarar en el modelo:
+  ```php
+  public $timestamps = false;
+  // O configurar sus nombres personalizados:
+  const CREATED_AT = 'creado_en';
+  const UPDATED_AT = 'actualizado_en';
+  ```
+
+### Problema 2: Las fotos de los productos se ven rotas en el navegador
+* **Causa:** El archivo físico no fue copiado a la carpeta pública o la vista no usa el accesor `url_limpia`.
+* **Solución:** En las plantillas Blade, usar siempre:
+  ```html
+  <img src="{{ asset($imagen->url_limpia) }}" alt="{{ $producto->nombre }}">
+  ```
+
+---
+
+## 8. 🎓 Preguntas Frecuentes para Evaluación
 
 1. **¿Qué es un Accesor en Eloquent y para qué se usó aquí?**
    * *Respuesta:* Un accesor es un método `get{Nombre}Attribute()` que intercepta la lectura de una propiedad en un modelo para formatearla antes de entregarla. Se utilizó `getUrlLimpiaAttribute()` para limpiar rutas heredadas de la base de datos sin necesidad de alterar físicamente los registros en MySQL.
