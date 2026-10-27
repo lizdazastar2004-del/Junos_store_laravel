@@ -5,7 +5,7 @@
 * **Ubicación:** `resources/views/layouts/admin.blade.php`
 * **Tipo:** Plantilla Maestra Administrativa Blade.
 * **Capa:** Vista / Presentación Administrativa (V en MVC).
-* **Propósito:** Proporcionar la estructura y diseño del panel de administración (Dashboard, Listado de Productos, Creación y Edición). Sustituye la barra azul básica de Bootstrap por una arquitectura moderna con barra lateral *glassmorphic* (vidrio esmerilado pastel), cabecera superior con perfil de administrador, alertas flash, cajón retráctil (*drawer*) para dispositivos móviles y enlace directo a la tienda pública.
+* **Propósito:** Proporcionar la estructura y diseño del panel de administración (Dashboard, Listado de Productos, Creación y Edición). Sustituye la barra azul básica de Bootstrap por una arquitectura moderna con barra lateral fija *glassmorphic* (vidrio esmerilado pastel), cabecera superior con perfil de administrador, alertas flash y enlace directo a la tienda pública.
 
 ---
 
@@ -27,6 +27,8 @@ graph TD
         ViewProdIndex[admin/productos/index.blade.php] -->|@section('content')| LayoutAdmin
         ViewProdCreate[admin/productos/crear.blade.php] -->|@section('content')| LayoutAdmin
         ViewProdEdit[admin/productos/editar.blade.php] -->|@section('content')| LayoutAdmin
+        ViewPedIndex[admin/pedidos/index.blade.php] -->|@section('content')| LayoutAdmin
+        ViewUserIndex[admin/usuarios/index.blade.php] -->|@section('content')| LayoutAdmin
     end
 
     subgraph "Datos del Usuario en Sesión"
@@ -40,7 +42,7 @@ graph TD
 
 ## 3. Código Fuente y Explicación Detallada por Componentes
 
-### A. Barra Lateral Retráctil (*Sidebar Kawaii*)
+### A. Barra Lateral Fija (*Sidebar Kawaii*)
 ```blade
 <aside class="admin-sidebar" id="adminSidebar">
     <!-- Brand / Logotipo -->
@@ -62,6 +64,16 @@ graph TD
            class="sidebar-link {{ request()->routeIs('admin.productos.*') ? 'active' : '' }}">
             <i class="fas fa-box-open" style="width: 20px;"></i>
             <span>Productos</span>
+        </a>
+        <a href="{{ route('admin.pedidos.index') }}"
+           class="sidebar-link {{ request()->routeIs('admin.pedidos.*') ? 'active' : '' }}">
+            <i class="fas fa-shopping-bag" style="width: 20px;"></i>
+            <span>Pedidos / Ventas</span>
+        </a>
+        <a href="{{ route('admin.usuarios.index') }}"
+           class="sidebar-link {{ request()->routeIs('admin.usuarios.*') ? 'active' : '' }}">
+            <i class="fas fa-users" style="width: 20px;"></i>
+            <span>Clientes</span>
         </a>
 
         <span class="sidebar-section-label">Tienda Pública</span>
@@ -94,11 +106,12 @@ graph TD
 ### B. Barra Superior y Perfil de Usuario
 ```blade
 <header class="admin-header">
-    <button type="button" class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Abrir menú lateral">
-        <i class="fas fa-bars"></i>
-    </button>
-
     <div class="admin-user-nav ms-auto">
+        <a href="{{ route('tienda.index') }}" target="_blank" class="btn-pill d-none d-sm-inline-flex align-items-center gap-1">
+            <i class="fas fa-eye"></i>
+            <span>Visitar Tienda</span>
+        </a>
+
         <div class="admin-profile">
             <div class="admin-profile-info">
                 <span class="admin-profile-name">{{ auth()->user()->nombre_completo }}</span>
@@ -109,6 +122,14 @@ graph TD
                  class="admin-avatar"
                  onerror="this.src='{{ asset('img/icon.png') }}'">
         </div>
+
+        <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
+            @csrf
+            <button type="submit" class="btn-kawaii-outline" style="padding: 6px 12px; font-size: 0.82rem; border-radius: 999px; color: #c2335f; border-color: #fcc2d7;" title="Cerrar sesión">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="d-none d-md-inline ms-1">Salir</span>
+            </button>
+        </form>
     </div>
 </header>
 ```
@@ -117,26 +138,43 @@ graph TD
 
 ---
 
-### C. Alertas Flash y Scripts de Adaptabilidad Móvil
+### C. Alertas Flash y Contenedor Principal
 ```blade
-<script>
-    function toggleSidebar() {
-        const sidebar = document.getElementById('adminSidebar');
-        const backdrop = document.getElementById('sidebarBackdrop');
-        if (sidebar) sidebar.classList.toggle('open');
-        if (backdrop) backdrop.classList.toggle('show');
-    }
-</script>
+<div class="admin-wrapper">
+    @if(session('success'))
+    <div class="alert-kawaii alert-kawaii-success" role="alert">
+        <i class="fas fa-check-circle alert-kawaii-icon"></i>
+        <div>
+            <strong>¡Excelente!</strong>
+            <div>{{ session('success') }}</div>
+        </div>
+    </div>
+    @endif
+
+    <main>
+        @yield('content')
+    </main>
+</div>
 ```
-* Un script ligero y reactivo que abre y cierra la barra lateral en pantallas móviles sin depender de librerías pesadas de terceros.
+* `@yield('content')`: Punto de inserción donde las vistas hijas (Dashboard, CRUD Productos, Pedidos) inyectan su contenido modular sin duplicar la estructura del layout.
 
 ---
 
-## 4. Preguntas Frecuentes para Evaluación
+## 4. 💥 ANÁLISIS DE IMPACTO: "¿QUÉ SUCEDE SI QUITO ESTO EN EL PROYECTO?"
+
+| Si quitas... | Error técnico que ocurre | Impacto real en el sistema |
+| :--- | :--- | :--- |
+| **`@yield('content')`** | La página carga en blanco en la sección central. | Ninguna vista administrativa hija (`dashboard.blade.php`, `index.blade.php`, etc.) podrá mostrar sus tablas, formularios o métricas. Solo se verá la barra lateral vacía. |
+| **`@csrf` en el formulario de logout** | `419 | Page Expired` al presionar "Cerrar sesión". | El administrador no podrá cerrar su sesión de forma segura y recibirá un error de token expirado. |
+| **`{{ asset('css/admin-kawaii.css') }}`** | Todo el panel pierde su diseño visual y la barra lateral se deforma como una lista HTML sin estilo. | La experiencia visual se destruye, las tablas se desbordan y los botones pierden su estilo pastel kawaii. |
+
+---
+
+## 5. 🎓 Preguntas Frecuentes para Evaluación
 
 1. **¿Cómo se logró que la barra lateral permanezca activa al editar un producto?**
    * *Respuesta:* Mediante el método `request()->routeIs('admin.productos.*')`. Al utilizar el asterisco como comodín, cualquier sub-ruta nombrada bajo el espacio de nombres `admin.productos` activa automáticamente la clase CSS `.active`.
 2. **¿Por qué se usan dos hojas de estilo (`kawaii.css` y `admin-kawaii.css`)?**
    * *Respuesta:* Para mantener el principio de modularidad y reutilización. `kawaii.css` contiene los tokens globales (colores pastel, variables tipográficas, botones, inputs y alertas), mientras que `admin-kawaii.css` define las reglas específicas del panel (grid de la barra lateral, tarjetas KPI y tablas administrativas).
-3. **¿Cómo se garantiza la adaptabilidad en dispositivos móviles?**
-   * *Respuesta:* En pantallas pequeñas (< 992px), la barra lateral se oculta con `transform: translateX(-100%)`. Al presionar el botón `.sidebar-toggle`, se agrega la clase `.open` junto con un telón semitransparente (`.sidebar-backdrop`), permitiendo una experiencia de usuario táctil nativa.
+3. **¿Cuál es la diferencia entre `@extends` y `@yield` en Blade?**
+   * *Respuesta:* `@extends('layouts.admin')` se coloca en las vistas hijas para indicar de qué plantilla maestra heredan la estructura. `@yield('content')` se coloca en la plantilla maestra para marcar el espacio donde se inyectará el contenido de cada vista hija.

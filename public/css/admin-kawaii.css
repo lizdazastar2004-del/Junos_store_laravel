@@ -700,52 +700,9 @@ body.admin-layout {
 }
 
 /* ============================================================
-   RESPONSIVE DESIGN (Móvil y Tablet)
+   AJUSTES DE CUADRÍCULA DEL PANEL ADMIN
    ============================================================ */
 @media (max-width: 992px) {
-    .sidebar-toggle {
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        background: #ffffff;
-        border: 1.5px solid #d8cce8;
-        color: var(--brand-text);
-        font-size: 1.1rem;
-        cursor: pointer;
-        margin-right: auto;
-        box-shadow: 0 4px 12px rgba(122, 74, 220, 0.1);
-    }
-
-    .admin-sidebar {
-        position: fixed;
-        top: 0;
-        left: -280px;
-        bottom: 0;
-        z-index: 1050;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 8px 0 30px rgba(60, 32, 94, 0.2);
-    }
-
-    .admin-sidebar.show {
-        left: 0;
-    }
-
-    .sidebar-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(60, 32, 94, 0.4);
-        backdrop-filter: blur(4px);
-        z-index: 1040;
-        display: none;
-    }
-
-    .sidebar-backdrop.show {
-        display: block;
-    }
-
     .admin-wrapper {
         padding: 16px;
     }

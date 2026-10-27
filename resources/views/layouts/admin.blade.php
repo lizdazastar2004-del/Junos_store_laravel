@@ -26,9 +26,6 @@
 </head>
 <body class="admin-layout">
 
-<!-- Backdrop para versión móvil -->
-<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
-
 <!-- ══════════════════ SIDEBAR KAWAII ══════════════════ -->
 <aside class="admin-sidebar" id="adminSidebar">
     <!-- Brand -->
@@ -101,11 +98,6 @@
 <div class="admin-wrapper">
     <!-- Header Admin -->
     <header class="admin-header">
-        <!-- Toggle button para móvil -->
-        <button type="button" class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Abrir menú lateral">
-            <i class="fas fa-bars"></i>
-        </button>
-
         <div class="admin-user-nav ms-auto">
             <a href="{{ route('tienda.index') }}" target="_blank" class="btn-pill d-none d-sm-inline-flex align-items-center gap-1">
                 <i class="fas fa-eye"></i>
@@ -164,18 +156,6 @@
 
 <!-- Bootstrap 5 Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Script para toggle del menú móvil -->
-<script>
-function toggleSidebar() {
-    const sidebar = document.getElementById('adminSidebar');
-    const backdrop = document.getElementById('sidebarBackdrop');
-    if (sidebar && backdrop) {
-        sidebar.classList.toggle('show');
-        backdrop.classList.toggle('show');
-    }
-}
-</script>
 
 @stack('scripts')
 </body>

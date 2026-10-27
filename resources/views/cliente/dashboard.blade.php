@@ -897,7 +897,7 @@
 
                         <div class="mb-4">
                             <label class="form-label" style="font-weight: 700; color: #4b3664; font-size: 0.88rem;">
-                                Teléfono Móvil
+                                Teléfono de Contacto
                             </label>
                             <input type="text" name="telefono" class="form-kawaii-control" value="{{ old('telefono', $usuario->telefono) }}" placeholder="Ej: 300 123 4567">
                         </div>
